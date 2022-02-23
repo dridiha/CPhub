@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 import sys
-sys.setrecursionlimit(3000)
+sys.setrecursionlimit(50000)
 max_length = 0
 # method using Tree
 
