@@ -2,66 +2,49 @@
 import sys
 sys.setrecursionlimit(50000)
 
-class Node:
-    def __init__(self, parent, data):
-        self.parent = parent
-        self.data = data
-        self.children = []
-
-def createTree(root, edges):
-    i = 0
-    while i < len(edges):
-        if edges[i][0] == root.data:
-            root.children.append(Node(root, edges[i][1]))
-            edges.pop(i)
-        elif edges[i][1] == root.data:
-            root.children.append(Node(root, edges[i][0]))
-            edges.pop(i)
-        else:
-            i += 1
-    for child in root.children:
-        createTree(child, edges)
-
-def length_subTree(root, arr):
-    if len(root.children) == 0:
-        arr[root.data] = 0
+def createTreeFromEdges(edges):
+    tree = {}
+    for v1, v2 in edges:
+        tree.setdefault(v1, []).append(v2)
+        tree.setdefault(v2, []).append(v1)
         
-    else:
-        if root.data not in arr.keys():
-            arr[root.data] = 0
-            for child in root.children:
-                arr[root.data] += length_subTree(child, arr) + 1
+        
+    return tree
 
-    return arr[root.data]
+def length_subtree(tree, root, visited, arr):
+    if root not in visited:
+        visited.add(root)
+        if root not in arr.keys():
+            arr[root] = 0
+            for child in tree[root]:
+                if child not in visited:
+                    arr[root] += length_subtree(tree, child, visited, arr)
+            arr[root] += 1
+        return arr[root]
 
-def search(root, arr, length, N):
-    if len(root.children) > 0:
-        for child in root.children:
-            length[(root.data, child.data)] = [N - arr[child.data] - 2, arr[child.data]]
-        for child in root.children:
-            search(child, arr, length, N)
+
+
+def search(edges, length, arr, N):
+    for edge in edges:
+        if arr[edge[0]] > arr[edge[1]]:
+            length.append(min(arr[edge[1]], N - arr[edge[1]]))
+        else:
+            length.append(min(arr[edge[0]], N - arr[edge[0]]))
 
     
 
 def main():
     N = int(input())
     edges = [tuple(map(lambda x: int(x), input().split(" "))) for _ in range(N - 1)]
-    root = Node(None, 0)
-    createTree(root, list.copy(edges))
+    tree = createTreeFromEdges(edges)
     arr = {}
-    length_subTree(root, arr)
-    #print(arr)
-    length = {}
-    search(root, arr, length, N)
-    Tab = {}
-    print(length)
-    for key in length.keys():
-        Tab[key] = abs(length[key][0] - length[key][1])
-    Tab = sorted(Tab, key=lambda x: Tab[x])
-    print(Tab)
-    print(N - 1 - length[Tab[0]][0])
+    visited = set()
+    length = []
+    length_subtree(tree, edges[0][0], visited, arr)
+    search(edges, length, arr, N)
+    print(max(length))
     
     
-
+    
 main()
 
